@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 //
 const productSchema = mongoose.Schema({
-
+  //namnet för varje prukdt måste vara unikt
   name:     { type: String, required: true, unique: true },
   desc:     { type: String, required: true },
   price:    { type: Number, required: true },
