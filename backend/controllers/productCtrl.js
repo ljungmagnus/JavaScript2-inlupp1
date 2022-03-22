@@ -16,9 +16,10 @@ router.get('/:id', productModel.getProductById);
 router.post('/', productModel.addNewProduct);
 
 //UPDATE - uppdatera en produkt med en PUT
+router.put('/:id', productModel.updateProductById);
 
 //DELETE - ta bort en produkt med DELETE
-router.delete('/:id', productModel.deleteProduct);
+router.delete('/:id', productModel.deleteProductById);
 
 
 module.exports = router;

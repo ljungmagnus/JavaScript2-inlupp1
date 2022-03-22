@@ -104,9 +104,66 @@ exports.addNewProduct = (req, res) => {
     })
 }
 
+//UPDATE - uppdatera en produkt med en PUT
+exports.updateProductById = (req,res) => {
+
+    //Mongoose Model.exists() kollar om produkten jag försöker hämta finns
+    Product.exists({ _id: req.params.id }, (err, result) => {
+       
+      //om jag får ett fel pga. Bad request dvs. vi har skickat vår request på ett felaktigt sätt 
+      if(err) {
+          return res.status(400).json({
+            statusCode: 400,
+            status: false,
+            message: 'Bad request - du har angett ett ogiltigt id',
+          })
+      }
+    
+      //om jag inte hittar produkten pga den inte existerar
+      if(!result) {
+          return res.status(404).json({
+            statusCode: 404,
+            status: false,
+            message: 'Produkt med angivet id existera inte',
+          })
+      }
+
+      //om jag hittar produkten vill jag uppdatera den
+      //använder Mongoose Model.findOneAndUpdate() eftersom jag vill returnera produkten till skillnaded mot updateOne()
+      //använder option "new" då jag vill returnera den updaterade versionen istället för originalet
+      //då jag vill göra en PUT dvs. updatera hela produktern skickar jag med hela min body 
+      Product.findOneAndUpdate({ _id: req.params.id }, req.body, { new: true })
+        .then(data => {
+            res.status(200).json({
+              statusCode: 200,
+              status: true,
+              message: 'Produkt med id:' +req.params.id + ' har uppdaterats',
+              data
+            })
+        })
+        .catch(err => {
+          //om användaren försöker uppdatera produktens name till ett som redan existerar 
+          if(err.code === 11000) {
+              return res.status(400).json({
+                statusCode: 400,
+                status: false,
+                message: 'En produkt med samma namn existerar redan',
+                err
+              })
+          }
+          //annars är det troligtvis ett server fel
+          res.status(500).json({
+              statusCode: 500,
+              status: false,
+              message: 'Något gick fel. Kunde inte uppdatera produkten',
+              err
+          })
+        })
+    })
+}
 
 //DELETE - ta bort en produkt med DELETE
-exports.deleteProduct = (req, res) => {
+exports.deleteProductById = (req, res) => {
 
     //Mongoose Model.exists() kollar om produkten jag försöker hämta finns
     Product.exists({ _id: req.params.id }, (err, result) => {
@@ -130,13 +187,13 @@ exports.deleteProduct = (req, res) => {
       }
   
     //om jag hittar produkten vill jag ta bort den från databasen
-    //använder Mongoose Model.deleteOne() som tar bort produkten med angivet _id 
+    //använder Mongoose Model.deleteOne() som tar bort produkten med angivet _id och returnerar ett objekt deletedCount med info om hur många som togs bort 
       Product.deleteOne({ _id: req.params.id })
         .then(data => {
             res.status(200).json({
               statusCode: 200,
               status: true,
-              message: 'Produkt borttagen id: ' +req.params.id,
+              message: 'Produkt med id:' + req.params.id + ' har raderats från databasen',
               data
             })
         })
@@ -144,7 +201,7 @@ exports.deleteProduct = (req, res) => {
             res.status(500).json({
               statusCode: 500,
               status: false,
-              message: 'Kunde inte ta bort produkt',
+              message: 'Något gick fel. Kunde inte ta bort produkt',
               err
             })
         })
