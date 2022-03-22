@@ -27,20 +27,20 @@ exports.getProductById = (req, res) => {
        
       //om jag får ett fel pga. Bad request dvs. vi har skickat vår request på ett felaktigt sätt 
       if(err) {
-        return res.status(400).json({
-          statusCode: 400,
-          status: false,
-          message: 'Bad request',
-        })
+          return res.status(400).json({
+            statusCode: 400,
+            status: false,
+            message: 'Bad request - du har angett ett ogiltigt id',
+          })
       }
     
       //om jag inte hittar produkten pga den inte existerar
       if(!result) {
-        return res.status(404).json({
-          statusCode: 404,
-          status: false,
-          message: 'Produkt med angivet id existera inte',
-        })
+          return res.status(404).json({
+            statusCode: 404,
+            status: false,
+            message: 'Produkt med angivet id existera inte',
+          })
       }
   
     //om jag hittar produkten hämta den från databasen
@@ -48,11 +48,12 @@ exports.getProductById = (req, res) => {
       Product.findById(req.params.id)
         .then(data => res.status(200).json(data))
         .catch(err => {
-          res.status(500).json({
-            statusCode: 500,
-            status: false,
-            message: 'Något gick fel i sökningen på servern',
-          })
+            res.status(500).json({
+              statusCode: 500,
+              status: false,
+              message: 'Något gick fel i sökningen på servern',
+              err
+            })
         })
   
     })
@@ -103,5 +104,53 @@ exports.addNewProduct = (req, res) => {
     })
 }
 
+
+//DELETE - ta bort en produkt med DELETE
+exports.deleteProduct = (req, res) => {
+
+    //Mongoose Model.exists() kollar om produkten jag försöker hämta finns
+    Product.exists({ _id: req.params.id }, (err, result) => {
+       
+      //om jag får ett fel pga. Bad request dvs. vi har skickat vår request på ett felaktigt sätt 
+      if(err) {
+          return res.status(400).json({
+            statusCode: 400,
+            status: false,
+            message: 'Bad request - du har angett ett ogiltigt id',
+          })
+      }
+    
+      //om jag inte hittar produkten pga den inte existerar
+      if(!result) {
+          return res.status(404).json({
+            statusCode: 404,
+            status: false,
+            message: 'Produkt med angivet id existera inte',
+          })
+      }
+  
+    //om jag hittar produkten vill jag ta bort den från databasen
+    //använder Mongoose Model.deleteOne() som tar bort produkten med angivet _id 
+      Product.deleteOne({ _id: req.params.id })
+        .then(data => {
+            res.status(200).json({
+              statusCode: 200,
+              status: true,
+              message: 'Produkt borttagen id: ' +req.params.id,
+              data
+            })
+        })
+        .catch(err => {
+            res.status(500).json({
+              statusCode: 500,
+              status: false,
+              message: 'Kunde inte ta bort produkt',
+              err
+            })
+        })
+  
+    })
+
+}
 
 
